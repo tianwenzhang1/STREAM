@@ -35,11 +35,11 @@ import argparse
 import torch
 torch.multiprocessing.set_sharing_strategy('file_system')
 import torch.optim as optim
-from map import RoadNetworkMapFull
+from utils.map import RoadNetworkMapFull
 from utils.spatial_func import SPoint
 from utils.mbr import MBR
 from utils.graph_func import *
-from dataset import Dataset, collate_fn
+from utils.dataset import Dataset, collate_fn
 from multi_train import evaluate, init_weights, train, test
 from model import Encoder, DecoderMulti, Seq2SeqMulti
 from utils.model_utils import AttrDict
@@ -48,7 +48,7 @@ import json
 from utils.shortest_path_func import SPSolver
 import  pandas as pd
 import networkx as nx
-from dataset import calculate_road_trans
+from utils.dataset import calculate_road_trans
 
 
 
@@ -119,8 +119,8 @@ def get_rid_rnfea_dict(rn: RoadNetworkMapFull) -> torch.Tensor:
 
 if __name__ == '__main__':
     total_start_time = time.time()
-    parser = argparse.ArgumentParser(description='RNTrajRec')
-    parser.add_argument('--city', type=str, default='chengdu')
+    parser = argparse.ArgumentParser(description='GTR-HMD')
+    parser.add_argument('--city', type=str, default='Chengdu')
     parser.add_argument('--keep_ratio', type=float, default=0.125, help='keep ratio in float')
     parser.add_argument('--lambda1', type=int, default=10, help='weight for multi task rate')
     parser.add_argument('--lambda2', type=int, default=0.1, help='weight for multi task rate')
@@ -149,9 +149,12 @@ if __name__ == '__main__':
     if city == "Porto":
         zone_range = [41.111975, -8.667057, 41.177462, -8.585305]
         ts = 15
-    elif city == "chengdu":
+    elif city == "Chengdu":
         zone_range = [30.655, 104.043, 30.727, 104.129]
         ts = 12
+    elif city == "Harbin":
+        zone_range = [45.697920, 126.586130, 45.777090, 126.671862]
+        ts = 15
     else:
         raise NotImplementedError
 
@@ -159,15 +162,11 @@ if __name__ == '__main__':
         rn = RoadNetworkMapFull(map_root, zone_range=[41.111975, -8.667057, 41.177462, -8.585305], unit_length=50)
     elif city == "chengdu":
         rn = RoadNetworkMapFull(map_root, zone_range=[30.655, 104.043, 30.727, 104.129], unit_length=50)
+    elif city == "Harbin":
+        rn = RoadNetworkMapFull(map_root, zone_range=[45.697920, 126.586130, 45.777090, 126.671862], unit_length=50)
     else:
         raise NotImplementedError
-    # # 提取 rn.valid_edge 的键并保存为列表格式
-    # valid_edge_keys = list(rn.valid_edge.keys())
-    #
-    # # 保存为 txt 文件
-    # with open('./valid_edge_keys.txt', 'w') as file:
-    #     for key in valid_edge_keys:
-    #         file.write(f"{key}\n")
+
     args = AttrDict()
     args_dict = {
         'device': device,
@@ -271,9 +270,9 @@ if __name__ == '__main__':
     if args.road_trans_features:
         G = nx.DiGraph()
         G.add_nodes_from(list(range(args.loc_size)))
-        valid_edge = rn.valid_edge_one  # 假设 valid_edge 是一个字典
-        # 构建全局 road 转移图
-        adj_path = f"./data/1_road_trans.txt"
+        valid_edge = rn.valid_edge_one
+        # build global trans_graph
+        adj_path = f"./data/road_trans/road_trans_{city}.txt"
         adj_pd = pd.read_csv(adj_path)
         A, A_k = calculate_road_trans(args, valid_edge, adj_pd, G)
     else:
@@ -290,14 +289,14 @@ if __name__ == '__main__':
     else:
         fea_flag = False
 
-    model_save_root = f'./model/RNTrajRec/{city}/'
+    model_save_root = f'./model/GTR_HMD{city}/'
     if not os.path.exists(model_save_root):
         os.makedirs(model_save_root)
 
     if args.load_pretrained_flag:
         model_save_path = args.model_old_path
     else:
-        model_save_path = model_save_root + 'RNTrajRec_' + args.city + '_' + 'keep-ratio_' + str(args.keep_ratio) + '_' + time.strftime("%Y%m%d_%H%M%S") +'/'
+        model_save_path = model_save_root + 'GTR_HMD' + args.city + '_' + 'keep-ratio_' + str(args.keep_ratio) + '_' + time.strftime("%Y%m%d_%H%M%S") +'/'
 
         if not os.path.exists(model_save_path):
             os.makedirs(model_save_path)
@@ -336,7 +335,7 @@ if __name__ == '__main__':
     
 
     if args.traffic_features:
-        traffic_path = './traffic/chengdu_traffics.pkl'
+        traffic_path = f'./data/{city}traffic/{city}_traffics.pkl'
         with open(traffic_path, 'rb') as f:
             data_S = pickle.load(f)
         data_S_tensor = torch.tensor(data_S, dtype=torch.float32).to(device)
@@ -344,7 +343,7 @@ if __name__ == '__main__':
         data_S_tensor = None
 
     if args.speed_features:
-        speed_path = './traffic/one_hot_chengdu.npy'
+        speed_path = f'./data/traffic/{city}_onehot.npy'
         with open(speed_path, 'rb') as f:
             speeds = np.load(speed_path)
     else:
@@ -358,13 +357,13 @@ if __name__ == '__main__':
     print('validation dataset shape: ' + str(len(valid_dataset)))
     print('testing dataset shape: ' + str(len(test_dataset)))
 
-    with open('./data/chengdu/train/train_batch.txt', 'r') as f:
+    with open(f'./data/{city}/train/train_batch.txt', 'r') as f:
         batch_size_content = f.read()
     batch_size_dict_train = ast.literal_eval(batch_size_content)
-    with open('./data/chengdu/valid/valid_batch.txt', 'r') as f:
+    with open(f'./data/{city}/valid/valid_batch.txt', 'r') as f:
         batch_size_content = f.read()
     batch_size_dict_valid = ast.literal_eval(batch_size_content)
-    with open('./data/chengdu/test/test_batch.txt', 'r') as f:
+    with open(f'./data/{city}/test/test_batch.txt', 'r') as f:
         batch_size_content = f.read()
     batch_size_dict_test = ast.literal_eval(batch_size_content)
 
@@ -544,7 +543,7 @@ if __name__ == '__main__':
   # test stage
   #   model_save_path = './model/RNTrajRec/Porto/Porto/'
     model = torch.load(model_save_path + 'val-best-model.pt').to(device)
-    verbose_root = f'./model/RNTrajRec/{city}/'
+    verbose_root = f'./model/GTR-HMD/{city}/'
     output = None
     if args.verbose_flag:
         if not os.path.exists(verbose_root):
