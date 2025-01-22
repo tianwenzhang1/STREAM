@@ -583,46 +583,33 @@ class CustomGNN(nn.Module):
         :param readout: 是否进行全图池化，默认为 True
         :return: 如果 readout=True，返回 [graph size, hidden dim]，否则返回 [node size, hidden dim]
         '''
-        mask = (x.sum(dim=1) != 0).float()  # 假设特征为零的节点总和为零
-
-        # 仅保留特征不为零的节点
+        mask = (x.sum(dim=1) != 0).float()
         x = x * mask.unsqueeze(1)
-
-        # 对节点特征进行 GNN 卷积计算
         x = self.dropout(self.gnn(g, x))
-
-        # 如果不需要全图池化，直接返回节点嵌入
         if not readout:
             return x
-
-        # 将节点嵌入存储到图的节点数据中
         g.ndata['v'] = x
 
-        # 如果图中有权重信息，使用加权池化
         if 'w' in g.ndata:
             return dgl.mean_nodes(g, 'v', weight='w'), g
         else:
-            # 否则直接做平均池化
             return dgl.mean_nodes(g, 'v'), g
         
 class ProbSpeed(nn.Module):
     def __init__(self, n_in, hidden_size, dim_s, dropout=0.2, use_selu=True):
         super(ProbSpeed, self).__init__()
 
-        # 输入层到隐藏层的线性变换
         self.fc1 = nn.Linear(n_in, hidden_size)
-        self.fc_mu = nn.Linear(hidden_size, dim_s)  # 生成均值 mu
-        self.fc_logvar = nn.Linear(hidden_size, dim_s)  # 生成对数方差 logvar
-
-        # 可选的激活函数
+        self.fc_mu = nn.Linear(hidden_size, dim_s)
+        self.fc_logvar = nn.Linear(hidden_size, dim_s)
         self.use_selu = use_selu
         self.dropout = nn.Dropout(dropout)
 
     def reparameterize(self, mu, logvar):
         """ 重参数化技巧：从高斯分布中采样"""
-        std = torch.exp(0.5 * logvar)  # 计算标准差
-        eps = torch.randn_like(std)  # 生成与标准差相同形状的标准正态分布噪声
-        z = mu + eps * std  # 计算潜在变量
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        z = mu + eps * std
         return z
 
     def forward(self, x):
@@ -635,16 +622,14 @@ class ProbSpeed(nn.Module):
         if self.use_selu:
             h = F.selu(h)
         else:
-            h = F.leaky_relu(h, negative_slope=0.1)  # 或者可以使用其它激活函数，如 SELU
+            h = F.leaky_relu(h, negative_slope=0.1)
 
-        # 计算均值和对数方差
-        mu = self.fc_mu(h)  # 均值
-        logvar = self.fc_logvar(h)  # 对数方差
-
-        # 使用重参数化技巧得到潜在变量 z
+        mu = self.fc_mu(h)
+        logvar = self.fc_logvar(h)  #
         z = self.reparameterize(mu, logvar)
-
         return z, mu, logvar
+
+
 
 class Seq2SeqMulti(nn.Module):
     """
@@ -748,7 +733,7 @@ class Seq2SeqMulti(nn.Module):
         road_emb = road_emb.reshape(-1, self.hid_dim)
         self.decoder.emb_id = road_emb  # [id size, hidden dim]
 
-        # 速度
+        # road speed
         if self.speed_flag:
             speed = speed.to(self.device).float()
             speed_emb = self.speed_in(speed)
