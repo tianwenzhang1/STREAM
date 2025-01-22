@@ -1,21 +1,24 @@
-# RNTrajRec
+# Graph-Based Trajectory Recovery with Hierarchical Movement Dynamics
 
-<p align="center">
-<img src="img/framework.png" width="90%">
-</p>
+[//]: # (<p align="center">)
 
-## About
-Source code of the ICDE'23: [RNTrajRec: Road Network Enhanced Trajectory Recovery with Spatial-Temporal Transformer](docs/ICDE2023_RNTrajRec.pdf)
+[//]: # (<img src="img/framework.png" width="90%">)
+
+[//]: # (</p>)
+
+[//]: # (## About)
+
+[//]: # (Source code of the ICDE'23: [RNTrajRec: Road Network Enhanced Trajectory Recovery with Spatial-Temporal Transformer]&#40;docs/ICDE2023_RNTrajRec.pdf&#41;)
 
 ## Requirements
-* `Python==3.6`
-* `pytorch==1.8.0`
-* `rtree==0.9.4`
+* `Python==3.8.18`
+* `pytorch==2.1.0`
+* `dgl==2.3.0+cu118`
+* `scikit-learn==1.3.2`
+* `networkx==3.1`
 * `GDAL==2.3.3`
-* `networkx==2.3`
-* `dgl==0.8.0.post2`
-* `seaborn==0.11.2`
-* `chinese-calendar==1.6.1`
+* `rtree==1.3.0`
+* `numpy==1.24.4`
 
 ## Data format
 

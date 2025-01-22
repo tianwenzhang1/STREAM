@@ -127,13 +127,15 @@ if __name__ == '__main__':
     parser.add_argument('--hid_dim', type=int, default=512, help='hidden dimension')
     parser.add_argument('--epochs', type=int, default=30, help='epochs')
     parser.add_argument('--grid_size', type=int, default=50, help='grid size in int')
-    parser.add_argument('--pro_features_flag', action='store_true', help='flag of using profile features')
+    parser.add_argument('--time_step', type=int, default=8, help='time steps')
+    parser.add_argument('--traffic_dim', type=int, default=128, help='traffic_dim')
+    # parser.add_argument('--pro_features_flag', action='store_true', help='flag of using profile features')
     # parser.add_argument('--online_features_flag', action='store_true', help='flag of using traffic features')
-    parser.add_argument('--tandem_fea_flag', action='store_true', help='flag of using tandem rid features')
+    # parser.add_argument('--tandem_fea_flag', action='store_true', help='flag of using tandem rid features')
     parser.add_argument('--no_attn_flag', action='store_false', help='flag of using attention')
     parser.add_argument('--load_pretrained_flag', action='store_true', help='flag of load pretrained model')
     parser.add_argument('--model_old_path', type=str, default='', help='old model path')
-    parser.add_argument('--decay_flag', action='store_true')
+    # parser.add_argument('--decay_flag', action='store_true')
     parser.add_argument('--grid_flag', action='store_true')
     parser.add_argument('--transformer_layers', type=int, default=2)
 
@@ -141,7 +143,7 @@ if __name__ == '__main__':
 
     # opts.online_features_flag = True
 
-    device = torch.device("cuda:1")
+    device = torch.device("cuda:0")
 
     city = opts.city
     map_root = f"./data/roadnet/{city}/"
@@ -160,7 +162,7 @@ if __name__ == '__main__':
 
     if city == "Porto":
         rn = RoadNetworkMapFull(map_root, zone_range=[41.111975, -8.667057, 41.177462, -8.585305], unit_length=50)
-    elif city == "chengdu":
+    elif city == "Chengdu":
         rn = RoadNetworkMapFull(map_root, zone_range=[30.655, 104.043, 30.727, 104.129], unit_length=50)
     elif city == "Harbin":
         rn = RoadNetworkMapFull(map_root, zone_range=[45.697920, 126.586130, 45.777090, 126.671862], unit_length=50)
@@ -191,8 +193,8 @@ if __name__ == '__main__':
         'gamma': 30,
 
         # features
-        'tandem_fea_flag': opts.tandem_fea_flag,
-        'pro_features_flag': opts.pro_features_flag,
+        'tandem_fea_flag': True,
+        'pro_features_flag': True,
         # 'online_features_flag': opts.online_features_flag,
         'online_features_flag': False,
         'grid_flag': opts.grid_flag,
@@ -207,7 +209,7 @@ if __name__ == '__main__':
 
         #traffic_features
         'traffic_features': True,
-        'traffic_dim': 128,
+        'traffic_dim': opts.traffic_dim,
         'num_u': rn.valid_edge_cnt_one,
         'dim_u': 200,
         'dict_u': rn.valid_edge_one,
@@ -230,7 +232,7 @@ if __name__ == '__main__':
         'speed_hid': 512,
 
         'road_trans_features': False,
-        'time_step':8,
+        'time_step':opts.time_step,
         'loc_size': 4285,
         # MBR
         'min_lat': zone_range[0],
@@ -259,7 +261,7 @@ if __name__ == '__main__':
         'batch_size': 64,
         'learning_rate': 0.0004,
         'tf_ratio': 0.5,
-        'decay_flag': opts.decay_flag,
+        'decay_flag': True,
         'decay_ratio': 0.9,
         'clip': 1,
         'log_step': 1,
@@ -310,8 +312,8 @@ if __name__ == '__main__':
     args.grid_num = gps2grid(SPoint(args.max_lat, args.max_lng), mbr, args.grid_size)
     args.grid_num = (args.grid_num[0] + 1, args.grid_num[1] + 1)
     args.update(args_dict)
-    print(args)
-    logging.info(args_dict)
+    # print(args)
+    # logging.info(args_dict)
 
     args.g = g
     args.subg = dgl.batch(subg).to(args.device)
@@ -335,7 +337,7 @@ if __name__ == '__main__':
     
 
     if args.traffic_features:
-        traffic_path = f'./data/{city}traffic/{city}_traffics.pkl'
+        traffic_path = f'./data/traffic/{city}/{city}_traffics.pkl'
         with open(traffic_path, 'rb') as f:
             data_S = pickle.load(f)
         data_S_tensor = torch.tensor(data_S, dtype=torch.float32).to(device)
@@ -343,7 +345,7 @@ if __name__ == '__main__':
         data_S_tensor = None
 
     if args.speed_features:
-        speed_path = f'./data/traffic/{city}_onehot.npy'
+        speed_path = f'./data/traffic/{city}/{city}_speed_onehot.npy'
         with open(speed_path, 'rb') as f:
             speeds = np.load(speed_path)
     else:
