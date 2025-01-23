@@ -5,11 +5,7 @@ This repo contains the source code for the STREAM model.
 
 
 
----
-
 ## Requirements
-
----
 
 GTR-HMD uses the following dependencies with Python 3.8
 
@@ -29,11 +25,7 @@ pip install dgl -f https://data.dgl.ai/wheels/torch-2.1/cu121/repo.html
 
 
 
----
-
 ## Datasets
----
-
 ### Datasets Sourcess
 
 This study evaluates the performance of all methods using two real-world trajectory datasets: the Chengdu and the Harbin dataset. The Chengdu dataset is derived from Didi vehicle trajectory data in Chengdu collected in November 2016, with a time interval of 3.3 seconds on average, as detailed in [1]. The Harbin dataset contains taxi trip data from Harbin, China, collected between January 3 -- 7, 2015, with a 36.2-second time interval, which can be obtained from [2].
@@ -49,11 +41,8 @@ python skip_data.py
 ```
 
 
----
 
 ## How to run the code for ReadGraph
-
----
 
 ```bash
 python main.py --city chengdu --keep ratio 0.125
@@ -61,11 +50,7 @@ python main.py --city chengdu --keep ratio 0.125
 
 
 
----
-
 ## Reference
-
----
 
 [1] http://outreach.didichuxing.com/research/opendata/
 
