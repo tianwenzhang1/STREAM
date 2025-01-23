@@ -32,7 +32,7 @@ This study evaluates the performance of all methods using two real-world traject
 
 The Chengdu dataset is derived from Didi vehicle trajectory data in Chengdu collected in November 2016, with a time interval of 3.3 seconds on average, as detailed in [1]. 
 
-The Harbin dataset contains taxi trip data from Harbin, China, collected between January 3 -- 7, 2015, with a 36.2-second time interval, which can be obtained from [2].
+The Harbin dataset contains taxi trip data from Harbin, China, collected between January 3 to 7, 2015, with a 36.2-second time interval, which can be obtained from [2].
 
 ### Datasets preprocessing
 
