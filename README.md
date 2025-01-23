@@ -7,7 +7,7 @@ This repo contains the source code for the STREAM model.
 
 ## Requirements
 
-GTR-HMD uses the following dependencies with Python 3.8
+STREAM uses the following dependencies with Python 3.8
 
 * `pytorch==2.1.0`
 * `dgl==2.4.0+cu121`
