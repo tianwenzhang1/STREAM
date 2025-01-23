@@ -28,11 +28,16 @@ pip install dgl -f https://data.dgl.ai/wheels/torch-2.1/cu121/repo.html
 ## Datasets
 ### Datasets Sourcess
 
-This study evaluates the performance of all methods using two real-world trajectory datasets: the Chengdu and the Harbin dataset. The Chengdu dataset is derived from Didi vehicle trajectory data in Chengdu collected in November 2016, with a time interval of 3.3 seconds on average, as detailed in [1]. The Harbin dataset contains taxi trip data from Harbin, China, collected between January 3 -- 7, 2015, with a 36.2-second time interval, which can be obtained from [2].
+This study evaluates the performance of all methods using two real-world trajectory datasets: the Chengdu and the Harbin dataset. 
+The Chengdu dataset is derived from Didi vehicle trajectory data in Chengdu collected in November 2016, with a time interval of 3.3 seconds on average, as detailed in [1]. 
+The Harbin dataset contains taxi trip data from Harbin, China, collected between January 3 -- 7, 2015, with a 36.2-second time interval, which can be obtained from [2].
 
 ### Datasets preprocessing
 
-The Chengdu dataset retains trajectories with lengths between 40 and 80 after map matching as following [3]. The Harbin dataset includes trajectories with 20 to 300 points, where the time interval between consecutive points was less than 60 seconds, excluding any points that could not be matched to the road network. Road network data was sourced from OpenStreetMap. And each dataset was split into training, validation, and test sets in a 7:1:2 ratio as in [3].
+The Chengdu dataset retains trajectories with lengths between 40 and 80 after map matching as following [3]. 
+The Harbin dataset includes trajectories with 20 to 300 points, where the time interval between consecutive points was less than 60 seconds, excluding any points that could not be matched to the road network. 
+Road network data was sourced from OpenStreetMap. 
+And each dataset was split into training, validation, and test sets in a 7:1:2 ratio as in [3].
 
 Linear interpolation and Map matching can follow the approach in RNTrajRec. For dataset splitting, you can execute the following commands:
 ```
