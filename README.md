@@ -26,25 +26,33 @@ pip install dgl -f https://data.dgl.ai/wheels/torch-2.1/cu121/repo.html
 
 
 ## Datasets
-This study evaluates the performance of all methods using two real-world trajectory datasets: the Chengdu and the Harbin dataset. 
+- This study evaluates the performance of all methods using two real-world trajectory datasets: the Chengdu and the Harbin dataset. 
 
-The Chengdu dataset is derived from Didi vehicle trajectory data in Chengdu collected in November 2016, with a time interval of 3.3 seconds on average, as detailed in [1]. 
 
-The Harbin dataset contains taxi trip data from Harbin, China, collected between January 3 to 7, 2015, with a 36.2-second time interval, which can be obtained from [2].
+- The Chengdu dataset is derived from Didi vehicle trajectory data in Chengdu collected in November 2016, with a time interval of 3.3 seconds on average, as detailed in [1]. 
+
+
+- The Harbin dataset contains taxi trip data from Harbin, China, collected between January 3 to 7, 2015, with a 36.2-second time interval, which can be obtained from [2].
+
 
 
 
 ## Preprocessing
 
-The Chengdu dataset retains trajectories with lengths between 40 and 80 after map matching as following [3]. 
+- The Chengdu dataset retains trajectories with lengths between 40 and 80 after map matching as following [3]. 
 
-The Harbin dataset includes trajectories with 20 to 300 points, where the time interval between consecutive points was less than 60 seconds, excluding any points that could not be matched to the road network. 
 
-Road network data was sourced from OpenStreetMap(OSM), you can download OSM data from [4] in `.osm.pbf` format directly. 
+- The Harbin dataset includes trajectories with 20 to 300 points, where the time interval between consecutive points was less than 60 seconds, excluding any points that could not be matched to the road network. 
 
-And each dataset was split into training, validation, and test sets in a 7:1:2 ratio as in [3].
 
-Linear interpolation and Map matching can follow the approach in [3]. For dataset splitting, you can execute the following commands in the directory `preprocess`.
+- Road network data was sourced from OpenStreetMap(OSM), you can download OSM data from [4] in `.osm.pbf` format directly. 
+
+
+- And each dataset was split into training, validation, and test sets in a 7:1:2 ratio as in [3].
+
+
+- Linear interpolation and Map matching can follow the approach in [3]. For dataset splitting, you can execute the following commands in the directory `preprocess`.
+
 ```bash
 python skip_data.py
 ```
