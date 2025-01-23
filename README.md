@@ -26,15 +26,15 @@ pip install dgl -f https://data.dgl.ai/wheels/torch-2.1/cu121/repo.html
 
 
 ## Datasets
-### Datasets Sourcess
-
 This study evaluates the performance of all methods using two real-world trajectory datasets: the Chengdu and the Harbin dataset. 
 
 The Chengdu dataset is derived from Didi vehicle trajectory data in Chengdu collected in November 2016, with a time interval of 3.3 seconds on average, as detailed in [1]. 
 
 The Harbin dataset contains taxi trip data from Harbin, China, collected between January 3 to 7, 2015, with a 36.2-second time interval, which can be obtained from [2].
 
-### Datasets preprocessing
+
+
+## Preprocessing
 
 The Chengdu dataset retains trajectories with lengths between 40 and 80 after map matching as following [3]. 
 
@@ -44,18 +44,19 @@ Road network data was sourced from OpenStreetMap(OSM), you can download OSM data
 
 And each dataset was split into training, validation, and test sets in a 7:1:2 ratio as in [3].
 
-Linear interpolation and Map matching can follow the approach in [3]. For dataset splitting, you can execute the following commands:
-```
-cd preprocess
+Linear interpolation and Map matching can follow the approach in [3]. For dataset splitting, you can execute the following commands in the directory `preprocess`.
+```bash
 python skip_data.py
 ```
 
 
 
-## How to run the code for ReadGraph
+## How to run the code for STREAM
+
+- Training & testing :  (You can also set the `keep_ratio` to 0.0625)
 
 ```bash
-python main.py --city chengdu --keep ratio 0.125
+python multi_main.py --city Chengdu --keep_ratio 0.125
 ```
 
 
