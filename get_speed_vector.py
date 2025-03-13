@@ -1,4 +1,3 @@
-# one_hot值
 import math
 from collections import defaultdict
 import os
@@ -10,7 +9,7 @@ from utils.map import RoadNetworkMapFull
 
 
 def haversine_distance(lat1, lon1, lat2, lon2):
-    R = 6371  # 地球半径，单位：公里
+    R = 6371
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     delta_phi = math.radians(lat2 - lat1)
     delta_lambda = math.radians(lon2 - lon1)
@@ -24,11 +23,11 @@ def cal_cur_traj(speeds, cur_trajectory):
         t2, lat2, lng2, road_id2 = cur_trajectory[i]
 
         distance = haversine_distance(lat1, lng1, lat2, lng2)
-        time_diff = (t2 - t1) / 3600  # 时间差，单位为小时
+        time_diff = (t2 - t1) / 3600
 
         if time_diff > 0:
-            speed = distance / time_diff  # 计算速度，单位为公里/小时
-            time_slot = int((t1 - timestamp_0) / (time_interval * 60))  # 确定时间槽
+            speed = distance / time_diff
+            time_slot = int((t1 - timestamp_0) / (time_interval * 60))
 
             if road_id1 == road_id2:
                 speeds[time_slot][road_id1].append(speed)
@@ -52,10 +51,6 @@ class SpeedToFeature(nn.Module):
 
 
 def speed_to_one_hot(speeds, bins):
-    """
-    :param speeds: speed list
-    :param bins: speed range
-    """
     one_hot_encoding = np.zeros(len(bins) - 1, dtype=np.float32)
     for speed in speeds:
         bin_idx = np.digitize(speed, bins) - 1
@@ -108,7 +103,6 @@ try:
     else:
         raise NotImplementedError
 
-    # 原始代码
     speed_bins = torch.tensor([0, 1, 15, 30, 50, 100])
     folder_path = f'./data/{city}dataset'
     output_folder_path = f'./data/{city}/traffic'
@@ -146,9 +140,8 @@ try:
     one_hot_vectors = process_speeds_mean_to_one_hot(speeds, num_time_slots, num_road_segments, speed_bins)
     # save
     np.save(os.path.join(output_folder_path, 'one_hot_vectors_chengdu.npy'), one_hot_vectors)
-    print("处理完成")
 
 except Exception as e:
     import traceback
 
-    print("错误行：", traceback.format_exc())
+    print("error：", traceback.format_exc())
