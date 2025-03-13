@@ -60,8 +60,8 @@ class GatedFusion(nn.Module):
         XT = F.leaky_relu(self.HT_fc(HT))
         if self.speed_flag:
             XV = F.leaky_relu(self.speed_fc(HV))
-            z1 = torch.sigmoid(XS)  # 对HS的加权
-            z2 = torch.sigmoid(XT)  # 对HT的加权
+            z1 = torch.sigmoid(XS)
+            z2 = torch.sigmoid(XT)
             z3 = torch.sigmoid(XV)
             total_weight = z1 + z2 + z3
             z1 = z1 / total_weight
