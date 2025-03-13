@@ -739,8 +739,6 @@ class Seq2SeqMulti(nn.Module):
             speed_cons = torch.index_select(speed_emb, index=constraint_graph_src.ndata['id'].long(),
                                             dim=0)
             constraint_graph_src.ndata['v'] = speed_cons
-            # cons_speed_emb = dgl.mean_nodes(constraint_graph_src, 'v', weight='w')
-            # speed_src = cons_speed_emb.reshape(batch_size, max_src_len, -1).transpose(0, 1)
         else:
             speed_cons  = None
 
@@ -751,9 +749,7 @@ class Seq2SeqMulti(nn.Module):
             src = torch.cat((cons_emb, grid_emb, src), dim=-1)
         else:
             src = torch.cat((cons_emb, src), dim=-1)
-        
-        # if self.traffic_flag:
-        #     src = torch.cat((traffic_emb, src), dim=-1)
+
 
         # encoder_outputs is all hidden states of the input sequence, back and forwards
         # hidden is the final forward and backward hidden states, passed through a linear layer

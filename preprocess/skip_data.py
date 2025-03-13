@@ -29,7 +29,7 @@ def count_num(sorted_start):
     return time_num
 
 
-# 下采样获得测试集
+# test dataset
 def downsample_traj(pt_list, ds_type, keep_ratio):
     assert ds_type in ['uniform', 'random'], 'only `uniform` or `random` is supported'
     old_pt_list = pt_list.copy()
