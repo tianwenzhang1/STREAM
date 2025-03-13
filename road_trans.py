@@ -1,5 +1,4 @@
 import os
-import numpy as np
 from collections import deque
 from scipy.sparse import lil_matrix
 

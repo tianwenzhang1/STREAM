@@ -7,8 +7,7 @@ import tqdm
 import threading
 
 from utils.evaluation_utils import cal_id_acc_batch, cal_rn_dis_loss_batch, toseq
-from utils.dataset import collate_fn
-from  utils.dataset import  Dataset
+
 
 
 # set random seed

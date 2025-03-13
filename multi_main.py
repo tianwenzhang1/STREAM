@@ -378,7 +378,6 @@ if __name__ == '__main__':
 
 
 
-    # get all parameters (model parameters + task dependent log variances)
     log_vars = [torch.zeros((1,), requires_grad=True, device=device)] * 2  # use for auto-tune multi-task param
     optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate)
     stopping_count = 0
@@ -521,7 +520,6 @@ if __name__ == '__main__':
             args.tf_ratio = args.tf_ratio * args.decay_ratio
 
   # test stage
-  #   model_save_path = './model/RNTrajRec/Porto/Porto/'
     model = torch.load(model_save_path + 'val-best-model.pt').to(device)
     verbose_root = f'./model/GTR-HMD/{city}/'
     output = None
