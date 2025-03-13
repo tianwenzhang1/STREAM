@@ -6,6 +6,7 @@ from scipy.sparse import lil_matrix
 folder_path = './data/train_valid'
 max_road_id = 4712
 k_steps = 1
+
 transition_matrix = lil_matrix((max_road_id + 1, max_road_id + 1), dtype=int)
 
 for filename in os.listdir(folder_path):
@@ -22,14 +23,14 @@ for filename in os.listdir(folder_path):
                 parts = line.strip().split()
                 if len(parts) < 4:
                     continue
-                    
+
                 timestamp, lat, lon, road_id = parts
                 road_id = int(road_id)
 
                 for prev_road in recent_roads:
                     transition_matrix[prev_road, road_id] += 1
                 recent_roads.append(road_id)
-                
+
 output_file_path = './data/road_trans_Chengdu.txt'
 with open(output_file_path, 'w') as output_file:
     output_file.write('src,dst,weight\n')
@@ -37,3 +38,5 @@ with open(output_file_path, 'w') as output_file:
         for j in range(max_road_id + 1):
             if transition_matrix[i, j] > 0:
                 output_file.write(f"{i},{j},{transition_matrix[i, j]}\n")
+
+print(f"successful")

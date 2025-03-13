@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-# coding: utf-8
-# @Time    : 2020/11/5 10:27
 
 import random
 import torch
@@ -112,7 +109,7 @@ class ProbRho(nn.Module):
         # +dim_s2+dim_s3
         self.f = MLP2(dim_u+dim_s1, hidden_size, dim_rho, dropout, use_selu)
 
-    def roads2u(self, roads):  # 将道路id映射到u的特征值
+    def roads2u(self, roads):
         """
         road id to word id (u)
         """
@@ -175,8 +172,8 @@ class ProbTraffic(nn.Module):
     def __init__(self, n_in, hidden_size, dim_c, dropout, use_selu):
         super(ProbTraffic, self).__init__()
         conv_layers = [
-            nn.Conv2d(n_in, 32, (5, 5), stride=2, padding=1),   # 二维卷积层
-            nn.BatchNorm2d(32),    # 二维批归一化层，规范化卷积层的输出
+            nn.Conv2d(n_in, 32, (5, 5), stride=2, padding=1),
+            nn.BatchNorm2d(32),
             nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(32, 64, (4, 4), stride=2, padding=1),
             nn.BatchNorm2d(64),
@@ -184,7 +181,7 @@ class ProbTraffic(nn.Module):
             nn.Conv2d(64, 128, (4, 4), stride=2, padding=1),
             nn.BatchNorm2d(128),
             nn.LeakyReLU(0.1, inplace=True),
-            nn.AvgPool2d(7)   # 二维平均池化层
+            nn.AvgPool2d(7)
         ]
         self.f1 = nn.Sequential(*conv_layers)
         self.f2 = MLP2(128*2*2, hidden_size, dim_c, dropout, use_selu)
@@ -208,11 +205,11 @@ class ProbTraffic(nn.Module):
         mu, logvar = self.f2(x.view(x.size(0), -1))
         return self.reparameterize(mu, logvar), mu, logvar
 
-class ProbTravelTime(nn.Module):
+class ProbTrafficRep(nn.Module):
     def __init__(self, dim_rho, dim_c,
-                       hidden_size, dropout, use_selu):
-        super(ProbTravelTime, self).__init__()
-        self.f = MLP2(dim_rho+dim_c, hidden_size, 128, dropout, use_selu)
+                       hidden_size,traffic_dim, dropout, use_selu):
+        super(ProbTrafficRep, self).__init__()
+        self.f = MLP2(dim_rho+dim_c, hidden_size, traffic_dim, dropout, use_selu)
 
     def forward(self, rho, c):
         """
@@ -303,7 +300,7 @@ class Encoder(nn.Module):
         input_dim = 3
         if self.traffic_features:
             input_dim += parameters.traffic_dim
-        if self.online_features_flag:  # 实时特征
+        if self.online_features_flag:
             input_dim += parameters.online_dim
         if self.dis_prob_mask_flag:
             input_dim += parameters.hid_dim
@@ -333,9 +330,9 @@ class Encoder(nn.Module):
                 n_in=parameters.n_in, hidden_size=parameters.hidden_size2, dim_c=parameters.dim_c,
                 dropout=parameters.traffic_dropout, use_selu=parameters.use_selu
             )
-            self.traffic = ProbTravelTime(
+            self.traffic = ProbTrafficRep(
                 dim_rho=parameters.dim_rho, dim_c=parameters.dim_c,
-                hidden_size=parameters.hidden_size3, dropout=parameters.traffic_dropout, use_selu=parameters.use_selu
+                hidden_size=parameters.hidden_size3, traffic_dim = self.traffic_dim, dropout=parameters.traffic_dropout, use_selu=parameters.use_selu
             )
     def forward(self, src, speed_cons, src_len,src_rids, data_S, g, pro_features):
         # src = [src len, batch size, 3]
@@ -350,7 +347,6 @@ class Encoder(nn.Module):
             mask2d[i, :src_len[i]] = 1
 
         if self.traffic_features:
-            # 获取 rho
             rho = self.rho(src_rids)
             c, _, _ = self.c(data_S)
             logm, logv = self.traffic(rho, c)
@@ -557,13 +553,11 @@ class DecoderMulti(nn.Module):
 class CustomGNN(nn.Module):
     def __init__(self, parameters):
         super(CustomGNN, self).__init__()
-        self.gnn_type = parameters.gnn_type  # 可以选择不同的 GNN 类型
-        self.node_input_dim = parameters.speed_dim  # 输入维度
-        self.node_hidden_dim = parameters.speed_hid  # 隐藏层维度
-        self.num_layers = parameters.num_layers  # GNN 的层数
-        self.dropout_rate = parameters.dropout  # dropout 的概率
-
-        # 根据选择的 gnn_type 初始化不同的 GNN 模型
+        self.gnn_type = parameters.gnn_type
+        self.node_input_dim = parameters.speed_dim
+        self.node_hidden_dim = parameters.speed_hid
+        self.num_layers = parameters.num_layers
+        self.dropout_rate = parameters.dropout
         if self.gnn_type == 'gat':
             self.gnn = UnsupervisedGAT(self.node_input_dim, self.node_hidden_dim, edge_input_dim=0,
                                        num_layers=self.num_layers)
@@ -573,16 +567,10 @@ class CustomGNN(nn.Module):
             self.gnn = UnsupervisedGIN(self.node_input_dim, self.node_hidden_dim, edge_input_dim=0,
                                        num_layers=self.num_layers)
 
-        # dropout 层，用于防止过拟合
         self.dropout = nn.Dropout(self.dropout_rate)
 
     def forward(self, g, x, readout=True):
-        '''
-        :param g: DGLGraph 输入的图
-        :param x: 节点的特征嵌入，大小为 [node size, input_dim]
-        :param readout: 是否进行全图池化，默认为 True
-        :return: 如果 readout=True，返回 [graph size, hidden dim]，否则返回 [node size, hidden dim]
-        '''
+
         mask = (x.sum(dim=1) != 0).float()
         x = x * mask.unsqueeze(1)
         x = self.dropout(self.gnn(g, x))
@@ -606,17 +594,12 @@ class ProbSpeed(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def reparameterize(self, mu, logvar):
-        """ 重参数化技巧：从高斯分布中采样"""
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
         z = mu + eps * std
         return z
 
     def forward(self, x):
-        """
-        :param x: 输入的速度特征，[batch_size, n_in]
-        :return: (speed_emb, mu, logvar)
-        """
 
         h = self.fc1(x)
         if self.use_selu:
@@ -737,12 +720,11 @@ class Seq2SeqMulti(nn.Module):
         if self.speed_flag:
             speed = speed.to(self.device).float()
             speed_emb = self.speed_in(speed)
-            if self.noise_flag:
-                speed_emb, mu, logvar = self.prob_speed(speed_emb)
-            input_speed = torch.index_select(speed_emb, index=self.subg.ndata['id'].long(), dim=0)
             input_speed = torch.index_select(speed_emb, index=self.subg.ndata['id'].long(), dim=0)
             speed_emb, _ = self.speedgnn(self.subg, input_speed)
             speed_emb = speed_emb.reshape(-1, self.speed_hid)
+            if self.noise_flag:
+                speed_emb, mu, logvar = self.prob_speed(speed_emb)
         else:
             speed_emb = None
 

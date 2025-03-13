@@ -6,12 +6,10 @@ import torch.nn as nn
 import tqdm
 import threading
 
-import pickle
-import ast
 from utils.evaluation_utils import cal_id_acc_batch, cal_rn_dis_loss_batch, toseq
 from utils.dataset import collate_fn
 from  utils.dataset import  Dataset
-from model import ProbTraffic,ProbRho,ProbTravelTime
+
 
 # set random seed
 SEED = 20202020
@@ -26,10 +24,6 @@ print('multi_task device', device)
 
 
 def init_weights(self):
-    """
-    Here we reproduce Keras default initialization weights for consistency with Keras version
-    Reference: https://github.com/vonfeng/DeepMove/blob/master/codes/model.py
-    """
     ih = (param.data for name, param in self.named_parameters() if 'weight_ih' in name)
     hh = (param.data for name, param in self.named_parameters() if 'weight_hh' in name)
     b = (param.data for name, param in self.named_parameters() if 'bias' in name)
@@ -70,7 +64,6 @@ def train(model, iterator, optimizer, log_vars, rn,
         src_grid_seqs = src_grid_seqs.permute(1, 0, 2).to(device)
         trg_gps_seqs = trg_gps_seqs.permute(1, 0, 2).to(device)
         A, B = src_rids.size(0), src_rids.size(1)
-        # 将其转换为长整型，保留前两个维度
         src_rids = src_rids.view(A, B, -1).long()
         trg_rids = trg_rids.permute(1, 0, 2).long().to(device)
         trg_rates = trg_rates.permute(1, 0, 2).to(device)
@@ -282,7 +275,6 @@ def test(model, iterator, rn, online_features_dict, rid_features_dict, parameter
             src_grid_seqs = src_grid_seqs.permute(1, 0, 2).to(device)
             trg_gps_seqs = trg_gps_seqs.permute(1, 0, 2).to(device)
             A, B = src_rids.size(0), src_rids.size(1)
-            # 将其转换为长整型，保留前两个维度
             src_rids = src_rids.view(A, B, -1).long()
             trg_rids = trg_rids.permute(1, 0, 2).long().to(device)
             trg_rates = trg_rates.permute(1, 0, 2).to(device)

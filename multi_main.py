@@ -1,20 +1,3 @@
-"""
-run example:
-nohup python -u multi_main.py --city Chengdu --keep_ratio 0.125 --pro_features_flag \
-      --tandem_fea_flag --decay_flag --bounding_prob_mask_flag > chengdu_8.txt &
-nohup python -u multi_main.py --city Chengdu --keep_ratio 0.125 --pro_features_flag \
-      --tandem_fea_flag --decay_flag --grid_flag  > chengdu_8.txt &
-
-nohup python -u multi_main.py --city Chengdu --keep_ratio 0.0625 --pro_features_flag \
-      --tandem_fea_flag --decay_flag   > chengdu_16.txt &
-nohup python -u multi_main.py --city Chengdu --keep_ratio 0.125 --pro_features_flag \
-      --tandem_fea_flag --decay_flag   > chengdu_8.txt &
-nohup python -u multi_main.py --city Shanghai --keep_ratio 0.125 --pro_features_flag \
-      --tandem_fea_flag --decay_flag   > shanghai_8.txt &
-nohup python -u multi_main.py --city Porto --keep_ratio 0.125 --pro_features_flag \
-      --tandem_fea_flag --decay_flag   > porto_8.txt &
-version: GPS_Transformer_Grid_v2_6_v4beta
-"""
 
 import time
 from tqdm import tqdm
@@ -24,7 +7,6 @@ import sys
 sys.path.append('../../')
 
 
-from model import ProbRho, ProbTraffic, ProbTravelTime
 import pickle
 import  ast
 from torch.utils.data import Dataset, DataLoader,Subset
@@ -60,12 +42,10 @@ def create_data_loaders(dataset, batch_size_dict, collate_fn=lambda x: collate_f
     start_index = 0
 
     for key, num_trajectories in batch_size_dict.items():
-        # 获取数据集中的子集
         end_index = start_index + num_trajectories
         subset_indices = list(range(start_index, end_index))
         subset = Subset(dataset, subset_indices)
 
-        # 创建 DataLoader
         data_loader = DataLoader(
             subset,
             batch_size=64,
@@ -76,7 +56,7 @@ def create_data_loaders(dataset, batch_size_dict, collate_fn=lambda x: collate_f
             drop_last=drop_last
         )
         data_loaders[key] = data_loader
-        start_index = end_index  # 更新起始索引
+        start_index = end_index
 
     return data_loaders
 
@@ -103,11 +83,11 @@ def get_rid_rnfea_dict(rn: RoadNetworkMapFull) -> torch.Tensor:
         norm_rid[0] = np.log10(rn.edgeDis[rid] + 1e-6) / np.log10(max_length)
         norm_rid[rn.wayType[rid] + 1] = 1
         in_degree = 0
-        for eid in rn.edgeDict[rid]:  # 入度
+        for eid in rn.edgeDict[rid]:
             if eid in rn.valid_edge.keys():
                 in_degree += 1
         out_degree = 0
-        for eid in rn.edgeRevDict[rid]:  # 出度
+        for eid in rn.edgeRevDict[rid]:
             if eid in rn.valid_edge.keys():
                 out_degree += 1
         norm_rid[9] = in_degree
@@ -121,6 +101,7 @@ if __name__ == '__main__':
     total_start_time = time.time()
     parser = argparse.ArgumentParser(description='GTR-HMD')
     parser.add_argument('--city', type=str, default='Chengdu')
+    parser.add_argument('--gpuid', type=int, default=0, help='gpu id')
     parser.add_argument('--keep_ratio', type=float, default=0.125, help='keep ratio in float')
     parser.add_argument('--lambda1', type=int, default=10, help='weight for multi task rate')
     parser.add_argument('--lambda2', type=int, default=0.1, help='weight for multi task rate')
@@ -129,21 +110,17 @@ if __name__ == '__main__':
     parser.add_argument('--grid_size', type=int, default=50, help='grid size in int')
     parser.add_argument('--time_step', type=int, default=8, help='time steps')
     parser.add_argument('--traffic_dim', type=int, default=128, help='traffic_dim')
-    # parser.add_argument('--pro_features_flag', action='store_true', help='flag of using profile features')
-    # parser.add_argument('--online_features_flag', action='store_true', help='flag of using traffic features')
-    # parser.add_argument('--tandem_fea_flag', action='store_true', help='flag of using tandem rid features')
     parser.add_argument('--no_attn_flag', action='store_false', help='flag of using attention')
     parser.add_argument('--load_pretrained_flag', action='store_true', help='flag of load pretrained model')
     parser.add_argument('--model_old_path', type=str, default='', help='old model path')
-    # parser.add_argument('--decay_flag', action='store_true')
     parser.add_argument('--grid_flag', action='store_true')
     parser.add_argument('--transformer_layers', type=int, default=2)
 
     opts = parser.parse_args()
 
     # opts.online_features_flag = True
-
-    device = torch.device("cuda:0")
+    gpuid  = opts.gpuid
+    device = torch.device(f"cuda:{opts.gpuid}")
 
     city = opts.city
     map_root = f"./data/roadnet/{city}/"
@@ -195,17 +172,16 @@ if __name__ == '__main__':
         # features
         'tandem_fea_flag': True,
         'pro_features_flag': True,
-        # 'online_features_flag': opts.online_features_flag,
         'online_features_flag': False,
         'grid_flag': opts.grid_flag,
         'poi_features': False,
 
         # extra info module
-        'rid_fea_dim': 11,  # 1[norm length] + 8[way type] + 1[in degree] + 1[out degree]
-        'pro_input_dim': 25,  # 24[hour] + 1[holiday]
+        'rid_fea_dim': 11,
+        'pro_input_dim': 25,
         'pro_output_dim': 8,
         'poi_num': 0,
-        'online_dim': 0,  # poi/roadnetwork features dim
+        'online_dim': 0,
 
         #traffic_features
         'traffic_features': True,
@@ -226,14 +202,16 @@ if __name__ == '__main__':
         'dim_c': 400,
         'n_in':1,
 
+        #local speed
         'speed_features': True,
         'use_noise': True,
         'speed_dim': 512,
         'speed_hid': 512,
 
-        'road_trans_features': False,
+        # road trans
+        'road_trans_features': True,
         'time_step':opts.time_step,
-        'loc_size': 4285,
+        'loc_size': 4285 if opts.city == 'Chengdu' else 4047,
         # MBR
         'min_lat': zone_range[0],
         'min_lng': zone_range[1],
