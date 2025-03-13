@@ -96,7 +96,7 @@ def gps2grid(pt, mbr, grid_size):
     return locgrid_x, locgrid_y
 
 
-def get_rn_grid(mbr, rn, grid_size):  # 路段的网格表示
+def get_rn_grid(mbr, rn, grid_size):
     rn_grid = []
     rn_grid.append(torch.tensor([[0, 0]]))
     for i in range(1, rn.valid_edge_cnt_one):

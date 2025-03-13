@@ -357,33 +357,23 @@ def calculate_road_trans(args, valid_edge, adj_pd, g):
         src.append(src_id)
         dst.append(dst_id)
     g.add_weighted_edges_from(zip(src, dst, weights))
-
-    # Step 2: 获取邻接矩阵 A
     adj = nx.to_numpy_array(g)
     row_sums = adj.sum(axis=1)
-    # 如果某个节点的度为0，将其度设置为一个极小值以避免除0错误
     row_sums[row_sums == 0] = 1e-6
-    # Step 3: 计算度矩阵 D 的逆
-    D = np.diag(adj.sum(axis=1))  # 每行的总和，即度矩阵 D
-    epsilon = 1e-6  # 添加一个小的常数来防止奇异矩阵
-    D_inv = np.linalg.inv(D + epsilon * np.eye(D.shape[0]))  # 添加一个小的正则化项
+    D = np.diag(adj.sum(axis=1))
+    epsilon = 1e-6
+    D_inv = np.linalg.inv(D + epsilon * np.eye(D.shape[0]))
 
-    # Step 4: 归一化邻接矩阵
-    A = D_inv @ adj  # 使用度矩阵的逆乘邻接矩阵
-
-    # Step 5: 计算 A_k
-    A_k = np.zeros_like(A)  # 初始化A_k为零矩阵
+    A = D_inv @ adj
+    A_k = np.zeros_like(A)
     for i in range(1, k + 1):
-        A_k += np.linalg.matrix_power(A, i)  # 累加A的各次幂
+        A_k += np.linalg.matrix_power(A, i)
 
-    row_sums = A_k.sum(axis=1, keepdims=True)  # 计算每一行的总和，并保持列的维度
-    # 为了避免除以零，确保不会出现 NaN
+    row_sums = A_k.sum(axis=1, keepdims=True)
     row_sums[row_sums == 0] = 1e-6
 
-    # 计算列全 1 向量的乘积
-    inverse_diag = np.diag(1 / row_sums.flatten())  # 创建对角矩阵，元素是每行总和的倒数
+    inverse_diag = np.diag(1 / row_sums.flatten())
 
-    # 进行矩阵乘法
     A_k = inverse_diag @ A_k
 
     return A, A_k

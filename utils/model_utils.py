@@ -130,7 +130,7 @@ def get_gps_subgraph(constraint_mat_src, src_grid_seq, trg_rid, parameters):
         # print("src_grid_seq[i] shape:", src_grid_seq[i].shape)
         # print("src_grid_seq[i][-1] value:", src_grid_seq[i][-1])
         # print("trg_rid[src_grid_seq[i][-1]] value:", trg_rid[src_grid_seq[i][-1]])
-        if src_grid_seq[i][-1] >= len(trg_rid):  # 检查索引是否超出 trg_rid 的范围
+        if src_grid_seq[i][-1] >= len(trg_rid):
             # print("Warning: Index out of range for trg_rid.")
             continue
         # print("trg_rid[src_grid_seq[i][-1]] value:", trg_rid[src_grid_seq[i][-1]])

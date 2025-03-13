@@ -492,13 +492,13 @@ class RoadNetworkMapFull:
         edgeFile = open(dir + '/edgeOSM.txt')
         self.edgeDis = []
         self.edgeNode = []  #  （node_start,node_end)
-        self.edgeCord = []  # 每条道路包含的边
+        self.edgeCord = []
         self.edgeOffset = []
         self.nodeSet = set()
         self.nodeDict = {}  # {start: end}
         self.edgeDict = {}
         self.edgeRevDict = {}
-        self.nodeEdgeDict = {}  # {a:[]} 以a为起点的边列表
+        self.nodeEdgeDict = {}
         self.nodeEdgeRevDict = {}
         self.zone_range = zone_range
         self.unit_length = unit_length
@@ -535,7 +535,7 @@ class RoadNetworkMapFull:
             num = int(item_list[3])
             dist = 0
             # print (item_list)
-            self.edgeCord.append(list(map(float, item_list[4:])))  #每条道路包含的边
+            self.edgeCord.append(list(map(float, item_list[4:])))
             inzone_flag = True
             for i in range(num):
                 tmplat = float(item_list[4 + i * 2])
@@ -711,26 +711,24 @@ class RoadNetworkMapFull:
         dx = x2 - x1
         dy = y2 - y1
         steps = 0
-        # 斜率判断
         if abs(dx) > abs(dy):
             steps = abs(dx)
         else:
             steps = abs(dy)
-        # 必有一个等于1，一个小于1
+
         delta_x = float(dx / steps)
         delta_y = float(dy / steps)
-        # 四舍五入，保证x和y的增量小于等于1，让生成的直线尽量均匀
         x = x1 + 0.5
         y = y1 + 0.5
         for i in range(0, int(steps + 1)):
-            # 绘制像素点
+
             if self.cnn_graph[int(x),int(y)] < way_id:
                 self.cnn_graph[int(x),int(y)] = way_id
                 self.cnn_to_edge[int(x),int(y)] = valid_edge_id
             x += delta_x
             y += delta_y
 
-    def get_cnn_id(self, lat, lon):  # 经纬度变网格
+    def get_cnn_id(self, lat, lon):
         x = int ( (lon - self.zone_range[1]) / ((self.zone_range[3] - self.zone_range[1]) / self.long_num))
         y = int ( (lat - self.zone_range[0]) / ((self.zone_range[2] - self.zone_range[0]) / self.width_num))
         return x,y

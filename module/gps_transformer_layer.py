@@ -222,9 +222,6 @@ class GraphRefinementLayer(nn.Module):
         y = dgl.broadcast_nodes(g, y)  # [v, hid dim]
 
         x = g.ndata['x']  # [v, hid dim]
-        # if self.speed_flag:
-        #     v = g.ndata['v']
-            # speed = self.norm_1(v, g, mask2d)
 
         x2 = self.norm_1(x, g, mask2d)
 
