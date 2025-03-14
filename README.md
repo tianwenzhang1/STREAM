@@ -59,18 +59,18 @@ python skip_data.py
 To obtain the single-step global transition frequency of road segments, run:
 
 ```bash
-python road_trans.py.
+python road_trans.py
 ```
 
 To obtain the global grid speed matrix for a time period, run:
 
 ```bash
-python process_S.py.
+python process_S.py
 
 ```
 To get the local road segment speed information, run:
 ```bash
-python get_speed.py.
+python get_speed.py
 ```
 
 ## How to run the code for STREAM
