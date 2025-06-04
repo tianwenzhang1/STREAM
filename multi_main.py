@@ -547,7 +547,7 @@ if __name__ == '__main__':
     epoch_rn_mae_loss = []
     epoch_rn_rmse_loss = []
 
-    for time_slot, data_iterator in train_data_loaders.items():
+    for time_slot, data_iterator in test_data_loaders.items():
 
         time_id1_loss, time_recall_loss, time_precision_loss, time_f1_loss, time_mae_loss,\
         time_rmse_loss, time_rn_mae_loss, time_rn_rmse_loss = test(model, data_iterator, rn, online_features_dict,
